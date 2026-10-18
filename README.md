@@ -26,7 +26,7 @@ You can install the toolbox using Swift Package Manager, CocoaPods, or Carthage.
 ### Swift Package Manager (SPM)
 1. Open your Xcode project.
 2. Go to `File` > `Swift Packages` > `Add Package Dependency`.
-3. Enter the repository URL: `https://github.com/Sambit650/ios-toolbox-for-native-dev.git`
+3. Enter the repository URL: `https://github.com/Sambit650/ios-toolbox.git`
 4. Select the version or branch you want to install.
 5. Add the package to your target.
 
@@ -62,7 +62,7 @@ We welcome contributions from developers of all experience levels. To contribute
 - Add unit tests for new functionality where applicable.
 
 ### Issues and Bugs
-If you encounter any issues or bugs, please report them via the [Issues](https://github.com/Sambit650/ios-toolbox-for-native-dev/issues) page. Make sure to include relevant details such as:
+If you encounter any issues or bugs, please report them via the [Issues](https://github.com/Sambit650/ios-toolbox/issues) page. Make sure to include relevant details such as:
 - iOS version
 - Device type
 - Steps to reproduce the issue
