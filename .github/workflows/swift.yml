@@ -11,33 +11,34 @@ on:
 jobs:
   build:
     name: Build and Test
-    runs-on: macos-latest
+    runs-on: macos-15
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
-      - name: Check Available Xcode Versions
-        run: ls /Applications | grep Xcode
-
-      - name: Select Xcode 16
-        run: sudo xcode-select -s /Applications/Xcode_16.1.app/Contents/Developer
-
-      - name: Print Xcode Version
-        run: xcodebuild -version
-
-      - name: Clean Derived Data
-        run: rm -rf ~/Library/Developer/Xcode/DerivedData
+      - name: Select latest stable Xcode
+        run: |
+          ls -d /Applications/Xcode*.app
+          XCODE=$(ls -d /Applications/Xcode_16*.app 2>/dev/null | sort -V | tail -1)
+          XCODE=${XCODE:-/Applications/Xcode.app}
+          echo "Using $XCODE"
+          sudo xcode-select -s "$XCODE/Contents/Developer"
+          xcodebuild -version
 
       - name: Resolve Swift Package Dependencies
         run: swift package resolve
 
-      - name: List Available Simulators
-        run: xcrun simctl list
+      - name: Pick an iPhone simulator
+        run: |
+          DEVICE=$(xcrun simctl list devices available | grep -E '^\s+iPhone' | head -1 | sed -E 's/^\s+(.*) \([0-9A-F-]{36}\).*/\1/')
+          echo "Simulator: $DEVICE"
+          echo "SIM_NAME=$DEVICE" >> "$GITHUB_ENV"
 
       - name: Build and Test
         run: |
-          xcodebuild clean test \
-          -scheme Toolbox-Package \
-          -destination "platform=iOS Simulator,name=iPhone 16 Pro" \
-          -verbose
+          set -o pipefail
+          xcodebuild test \
+            -scheme Toolbox-Package \
+            -destination "platform=iOS Simulator,name=$SIM_NAME" \
+            | tail -n 200

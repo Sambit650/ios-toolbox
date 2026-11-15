@@ -2,49 +2,124 @@
 
 ## Overview
 
-Welcome to the iOS Development Toolbox! This repository offers a comprehensive collection of utility functions, helper methods, and integrations designed to simplify and streamline the development process for iOS applications. Whether you're building a simple app or a more complex project, this toolbox aims to save time and effort by providing common functionality and best practices in a modular format.
+A modular Swift package of utilities for iOS development: core String/Date helpers, a resilient networking layer, and an in-app network inspector. Import only the modules you need.
 
 ## Table of Contents
-- [Features](#-Features)
+- [Modules](#-modules)
 - [Installation](#-installation)
 - [Usage](#-usage)
+- [Project Structure](#-project-structure)
 - [Contributing](#-contributing)
 - [Contact](#-contact)
 
-## ✨ Features
+## 🧩 Modules
 
-- **Utility Functions**: A set of reusable functions to handle common tasks, such as string manipulation, date formatting, etc.
-- **Helper Methods**: Prebuilt methods that ease common UI and networking tasks.
-- **Integrations**: Pre-integrated libraries and tools to help you set up common app features like authentication, push notifications, etc.
-- **Extensibility**: Easily extend and modify the toolbox to fit the unique needs of your app.
-- **Cross-Version Support**: Compatible with different iOS versions and devices to ensure broad compatibility.
+The package is split into small modules. Import only what you need, or `import Toolbox` for everything.
+
+| Module | Description | Depends on |
+| --- | --- | --- |
+| `Toolbox` | Umbrella module that re-exports all modules below | all |
+| `ToolboxCore` | `String` and `Date` extensions, plus `StringUtils` | – |
+| `ToolboxNetworking` | Async/await `APIClient` with interceptors, retry/backoff, 401 refresh-and-replay, request de-duplication, response caching and traffic logging | – |
+| `ToolboxDebug` | SwiftUI network inspector, shake gesture helper and log filtering | `ToolboxNetworking` |
+
+**Requirements:** iOS 14+ / macOS 12+, Swift 5.9+ (the SwiftUI inspector requires iOS 15+).
 
 ## 📦 Installation
 
-You can install the toolbox using Swift Package Manager, CocoaPods, or Carthage.
-
 ### Swift Package Manager (SPM)
 1. Open your Xcode project.
-2. Go to `File` > `Swift Packages` > `Add Package Dependency`.
+2. Go to `File` > `Add Package Dependencies...`
 3. Enter the repository URL: `https://github.com/Sambit650/ios-toolbox.git`
 4. Select the version or branch you want to install.
-5. Add the package to your target.
+5. Add the products you need (`Toolbox`, `ToolboxCore`, `ToolboxNetworking`, `ToolboxDebug`) to your target.
+
+Or in `Package.swift`:
+
+```swift
+.package(url: "https://github.com/Sambit650/ios-toolbox.git", branch: "main")
+// then, in your target:
+.product(name: "Toolbox", package: "ios-toolbox")
+```
 
 ## 🔨 Usage
 
-Once you've installed the toolbox, you can import it into your project and begin utilizing the available utilities and helpers.
-
-### Example Usage
+### ToolboxCore
 
 ```swift
-import Toolbox
+import ToolboxCore
 
-// Example of using a utility function
-let formattedDate = DateUtils.formatDate(Date(), format: "yyyy-MM-dd")
+Date().formatted("yyyy-MM-dd")        // "2026-11-15"
+Date().isToday                        // true
+Date().adding(.day, value: 3).dayOfWeek()
+Date().startOfDay / Date().endOfDay
 
-// Example of using a helper method
-let isValidEmail = Validator.isValidEmail("example@example.com")
+"  ".isEmptyOrWhitespace()            // true
+"12345".containsOnlyDigits()          // true
+"Passw0rd!".containsSpecialCharacters()
+StringUtils.trimWhitespace("  hi  ")  // "hi"
 ```
+
+### ToolboxNetworking
+
+```swift
+import ToolboxNetworking
+
+let logs = NetworkLogStore()
+let client = APIClient(
+    baseURL: URL(string: "https://api.example.com")!,
+    interceptors: [BearerTokenInterceptor { await session.accessToken }],
+    authRefresher: { try await session.refreshTokens() },
+    logStore: logs)
+
+let user: User = try await client.send(
+    Endpoint(path: "users/42", cachePolicy: .cacheFirst(ttl: 60)))
+
+let created: User = try await client.send(
+    .json(path: "users", body: NewUser(name: "Sam")))
+```
+
+Highlights: `RetryPolicy` (exponential backoff, jitter, `Retry-After`), `CachePolicy` (`.networkOnly`, `.cacheFirst`, `.refresh`), `StaticHeadersInterceptor`, cURL export via `URLRequest`, and `MockTransport` for tests.
+
+### ToolboxDebug
+
+```swift
+import ToolboxDebug
+
+struct RootView: View {
+    @State private var showInspector = false
+    let logs: NetworkLogStore
+
+    var body: some View {
+        ContentView()
+            .onShake { showInspector = true }
+            .networkInspector(store: logs, isPresented: $showInspector)
+    }
+}
+```
+
+The inspector lists captured requests, supports search and status filtering, shows request/response details with formatted bodies, and copies cURL commands. Sensitive headers (`Authorization`, `Cookie`, ...) are redacted by default.
+
+## 🗂 Project Structure
+
+```
+ios-toolbox
+├── Package.swift
+├── Sources
+│   ├── Toolbox              # Umbrella (re-exports all modules)
+│   ├── ToolboxCore
+│   │   ├── Date             # Date+Extension
+│   │   └── String           # String extensions, validation, StringUtils
+│   ├── ToolboxNetworking    # APIClient, Endpoint, RetryPolicy, ResponseCache,
+│   │                        # interceptors, auth refresh, NetworkLogStore, ...
+│   └── ToolboxDebug         # Network inspector views, view model, filters, previews
+└── Tests
+    ├── ToolboxCoreTests
+    ├── ToolboxNetworkingTests
+    └── ToolboxDebugTests
+```
+
+Run the tests with `swift test`.
 
 ## 🤝 Contributing
 
