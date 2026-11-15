@@ -38,6 +38,6 @@ jobs:
       - name: Build and Test
         run: |
           xcodebuild clean test \
-          -scheme Toolbox \
+          -scheme Toolbox-Package \
           -destination "platform=iOS Simulator,name=iPhone 16 Pro" \
           -verbose

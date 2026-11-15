@@ -1,5 +1,4 @@
 // swift-tools-version: 5.9
-// The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
 
@@ -7,18 +6,26 @@ let package = Package(
     name: "Toolbox",
     platforms: [.iOS(.v14), .macOS(.v12)],
     products: [
-        // Products define the executables and libraries a package produces, making them visible to other packages.
-        .library(
-            name: "Toolbox",
-            targets: ["Toolbox"]),
+        // Umbrella: everything in one import.
+        .library(name: "Toolbox", targets: ["Toolbox"]),
+        // Individual modules: import only what you need.
+        .library(name: "ToolboxString", targets: ["ToolboxString"]),
+        .library(name: "ToolboxDate", targets: ["ToolboxDate"]),
+        .library(name: "ToolboxNetworking", targets: ["ToolboxNetworking"]),
+        .library(name: "ToolboxDebug", targets: ["ToolboxDebug"]),
     ],
     targets: [
-        // Targets are the basic building blocks of a package, defining a module or a test suite.
-        // Targets can depend on other targets in this package and products from dependencies.
+        .target(name: "ToolboxString"),
+        .target(name: "ToolboxDate"),
+        .target(name: "ToolboxNetworking"),
+        .target(name: "ToolboxDebug", dependencies: ["ToolboxNetworking"]),
         .target(
-            name: "Toolbox"),
-        .testTarget(
-            name: "ToolboxTests",
-            dependencies: ["Toolbox"]),
+            name: "Toolbox",
+            dependencies: ["ToolboxString", "ToolboxDate", "ToolboxNetworking", "ToolboxDebug"]),
+
+        .testTarget(name: "ToolboxStringTests", dependencies: ["ToolboxString"]),
+        .testTarget(name: "ToolboxDateTests", dependencies: ["ToolboxDate"]),
+        .testTarget(name: "ToolboxNetworkingTests", dependencies: ["ToolboxNetworking"]),
+        .testTarget(name: "ToolboxDebugTests", dependencies: ["ToolboxDebug", "ToolboxNetworking"]),
     ]
 )

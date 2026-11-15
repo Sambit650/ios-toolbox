@@ -7,7 +7,7 @@
 
 import Testing
 
-@testable import Toolbox
+@testable import ToolboxString
 
 @MainActor
 struct StringUtilsTests {
