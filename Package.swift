@@ -12,17 +12,20 @@ let package = Package(
         .library(name: "ToolboxCore", targets: ["ToolboxCore"]),
         .library(name: "ToolboxNetworking", targets: ["ToolboxNetworking"]),
         .library(name: "ToolboxDebug", targets: ["ToolboxDebug"]),
+        .library(name: "ToolboxFeatureFlags", targets: ["ToolboxFeatureFlags"]),
     ],
     targets: [
         .target(name: "ToolboxCore"),
         .target(name: "ToolboxNetworking"),
         .target(name: "ToolboxDebug", dependencies: ["ToolboxNetworking"]),
+        .target(name: "ToolboxFeatureFlags", dependencies: ["ToolboxNetworking"]),
         .target(
             name: "Toolbox",
-            dependencies: ["ToolboxCore", "ToolboxNetworking", "ToolboxDebug"]),
+            dependencies: ["ToolboxCore", "ToolboxNetworking", "ToolboxDebug", "ToolboxFeatureFlags"]),
 
         .testTarget(name: "ToolboxCoreTests", dependencies: ["ToolboxCore"]),
         .testTarget(name: "ToolboxNetworkingTests", dependencies: ["ToolboxNetworking"]),
+        .testTarget(name: "ToolboxFeatureFlagsTests", dependencies: ["ToolboxFeatureFlags", "ToolboxNetworking"]),
         .testTarget(name: "ToolboxDebugTests", dependencies: ["ToolboxDebug", "ToolboxNetworking"]),
     ]
 )

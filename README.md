@@ -22,6 +22,7 @@ The package is split into small modules. Import only what you need, or `import T
 | `ToolboxCore` | `String` and `Date` extensions, plus `StringUtils` | – |
 | `ToolboxNetworking` | Async/await `APIClient` with interceptors, retry/backoff, 401 refresh-and-replay, request de-duplication, response caching and traffic logging | – |
 | `ToolboxDebug` | SwiftUI network inspector, shake gesture helper and log filtering | `ToolboxNetworking` |
+| `ToolboxFeatureFlags` | Typed Bool/Int/String feature flags with layered providers (local, JSON, remote with disk cache), environments, user targeting and SwiftUI/Combine bindings | `ToolboxNetworking` |
 
 **Requirements:** iOS 14+ / macOS 12+, Swift 5.9+ (the SwiftUI inspector requires iOS 15+).
 
@@ -32,7 +33,7 @@ The package is split into small modules. Import only what you need, or `import T
 2. Go to `File` > `Add Package Dependencies...`
 3. Enter the repository URL: `https://github.com/Sambit650/ios-toolbox.git`
 4. Select the version or branch you want to install.
-5. Add the products you need (`Toolbox`, `ToolboxCore`, `ToolboxNetworking`, `ToolboxDebug`) to your target.
+5. Add the products you need (`Toolbox`, `ToolboxCore`, `ToolboxNetworking`, `ToolboxDebug`, `ToolboxFeatureFlags`) to your target.
 
 Or in `Package.swift`:
 
@@ -100,6 +101,69 @@ struct RootView: View {
 
 The inspector lists captured requests, supports search and status filtering, shows request/response details with formatted bodies, and copies cURL commands. Sensitive headers (`Authorization`, `Cookie`, ...) are redacted by default.
 
+### ToolboxFeatureFlags
+
+```swift
+import ToolboxFeatureFlags
+
+extension FlagKey where Value == Bool {
+    static let newCheckout = FlagKey("new_checkout", default: false)
+    static let premiumBanner = FlagKey("premium_banner", default: false)
+}
+
+// Earlier providers win: put remote/cached values before bundled defaults.
+let flags = FeatureFlags(
+    providers: [
+        UserDefaultsFlagProvider(),                              // persisted local toggles
+        try JSONFlagProvider(fileURL: bundledFlagsURL, environment: .staging),
+    ],
+    environment: .staging,
+    context: FlagContext(attributes: ["isPremium": .bool(user.isPremium)]))
+
+flags[.newCheckout]                       // typed read
+flags.setOverride(true, for: .newCheckout) // runtime override, e.g. from a debug menu
+
+// SwiftUI
+struct CheckoutView: View {
+    @FeatureFlag(.newCheckout, flags: appFlags) var useNewCheckout
+    var body: some View { useNewCheckout ? NewCheckout() : OldCheckout() }
+}
+
+// UIKit / Combine
+flags.publisher(for: .newCheckout).sink { enabled in /* update UI */ }.store(in: &bag)
+```
+
+JSON flags may use per-environment sections and targeting rules:
+
+```json
+{
+  "default": { "new_checkout": false },
+  "staging": { "new_checkout": true },
+  "production": {
+    "premium_banner": { "value": false,
+      "rules": [{ "attribute": "isPremium", "equals": true, "value": true }] }
+  }
+}
+```
+
+#### Remote flags
+
+`RemoteFlagProvider` fetches the same JSON from your backend (or a static file on a CDN) through an `APIClient`. Reads stay synchronous and come from memory; the last good response is cached on disk, so flags work offline and at launch. A failed or invalid fetch never discards existing values.
+
+```swift
+let remote = RemoteFlagProvider(
+    client: apiClient,
+    endpoint: Endpoint(path: "flags"),
+    environment: .staging,
+    refreshInterval: 15 * 60)          // minimum gap between non-forced refreshes
+
+let flags = FeatureFlags(providers: [remote, bundled])   // remote wins, bundled is the fallback
+await flags.refresh(remote)            // at launch / when the app becomes active; updates views on change
+await flags.refresh(remote, force: true)
+```
+
+To use Firebase Remote Config, LaunchDarkly or another SDK, implement `FlagProvider` yourself and call `flags.reload()` when new values arrive.
+
 ## 🗂 Project Structure
 
 ```
@@ -112,11 +176,13 @@ ios-toolbox
 │   │   └── String           # String extensions, validation, StringUtils
 │   ├── ToolboxNetworking    # APIClient, Endpoint, RetryPolicy, ResponseCache,
 │   │                        # interceptors, auth refresh, NetworkLogStore, ...
-│   └── ToolboxDebug         # Network inspector views, view model, filters, previews
+│   ├── ToolboxDebug         # Network inspector views, view model, filters, previews
+│   └── ToolboxFeatureFlags  # FlagKey, FeatureFlags, providers, SwiftUI/Combine bindings
 └── Tests
     ├── ToolboxCoreTests
     ├── ToolboxNetworkingTests
-    └── ToolboxDebugTests
+    ├── ToolboxDebugTests
+    └── ToolboxFeatureFlagsTests
 ```
 
 Run the tests with `swift test`.

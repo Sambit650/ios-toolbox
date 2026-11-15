@@ -9,4 +9,5 @@
 
 @_exported import ToolboxCore
 @_exported import ToolboxDebug
+@_exported import ToolboxFeatureFlags
 @_exported import ToolboxNetworking

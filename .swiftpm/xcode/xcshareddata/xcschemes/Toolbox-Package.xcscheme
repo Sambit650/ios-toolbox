@@ -59,6 +59,19 @@
                ReferencedContainer = "container:">
             </BuildableReference>
          </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "YES"
+            buildForArchiving = "YES"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "ToolboxFeatureFlags"
+               BuildableName = "ToolboxFeatureFlags"
+               ReferencedContainer = "container:">
+            </BuildableReference>
+         </BuildActionEntry>
       </BuildActionEntries>
    </BuildAction>
    <TestAction
@@ -92,6 +105,15 @@
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "ToolboxCoreTests"
                BuildableName = "ToolboxCoreTests"
+               ReferencedContainer = "container:">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "ToolboxFeatureFlagsTests"
+               BuildableName = "ToolboxFeatureFlagsTests"
                ReferencedContainer = "container:">
             </BuildableReference>
          </TestableReference>
