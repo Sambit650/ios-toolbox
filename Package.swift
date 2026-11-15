@@ -9,22 +9,19 @@ let package = Package(
         // Umbrella: everything in one import.
         .library(name: "Toolbox", targets: ["Toolbox"]),
         // Individual modules: import only what you need.
-        .library(name: "ToolboxString", targets: ["ToolboxString"]),
-        .library(name: "ToolboxDate", targets: ["ToolboxDate"]),
+        .library(name: "ToolboxCore", targets: ["ToolboxCore"]),
         .library(name: "ToolboxNetworking", targets: ["ToolboxNetworking"]),
         .library(name: "ToolboxDebug", targets: ["ToolboxDebug"]),
     ],
     targets: [
-        .target(name: "ToolboxString"),
-        .target(name: "ToolboxDate"),
+        .target(name: "ToolboxCore"),
         .target(name: "ToolboxNetworking"),
         .target(name: "ToolboxDebug", dependencies: ["ToolboxNetworking"]),
         .target(
             name: "Toolbox",
-            dependencies: ["ToolboxString", "ToolboxDate", "ToolboxNetworking", "ToolboxDebug"]),
+            dependencies: ["ToolboxCore", "ToolboxNetworking", "ToolboxDebug"]),
 
-        .testTarget(name: "ToolboxStringTests", dependencies: ["ToolboxString"]),
-        .testTarget(name: "ToolboxDateTests", dependencies: ["ToolboxDate"]),
+        .testTarget(name: "ToolboxCoreTests", dependencies: ["ToolboxCore"]),
         .testTarget(name: "ToolboxNetworkingTests", dependencies: ["ToolboxNetworking"]),
         .testTarget(name: "ToolboxDebugTests", dependencies: ["ToolboxDebug", "ToolboxNetworking"]),
     ]

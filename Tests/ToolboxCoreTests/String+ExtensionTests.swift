@@ -8,7 +8,7 @@
 import Foundation
 import Testing
 
-@testable import ToolboxString
+@testable import ToolboxCore
 
 @MainActor
 struct StringExtensionTests {

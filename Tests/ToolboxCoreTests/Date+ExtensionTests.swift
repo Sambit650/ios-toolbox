@@ -8,7 +8,7 @@
 import Foundation
 import Testing
 
-@testable import ToolboxDate
+@testable import ToolboxCore
 
 @MainActor
 struct DateExtensionTests {
